@@ -1,0 +1,28 @@
+'use strict';
+import url from 'url'
+
+const USER_AGENT_HEADER = 'User-Agent';
+
+/**
+ * Create user agent filter middleware
+ * @param {string} redirectUrl url to redirect if agent is not supported
+ * @param {string[]} supportedAgents list of supported agents
+ * @returns {function} express-style middleware function
+ */
+export default function createUserAgentMiddleware(redirectUrl, supportedAgents) {
+    let mw = function (req, res, next) {
+        if (url.parse(req.originalUrl).pathname.indexOf('api') !== -1) {
+            return next();
+        }
+        let agent = req.get(USER_AGENT_HEADER);
+        if (agent) {
+            let supported = supportedAgents.some((supportedAgent) => agent.includes(supportedAgent));
+            if (supported) {
+                return next();
+            }
+        }
+        res.redirect(redirectUrl);
+    };
+    
+    return mw;
+}
